@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, GraduationCap, Star, Trophy, FileSpreadsheet, Activity, Link as LinkIcon } from 'lucide-react';
+import { Users, GraduationCap, Star, Trophy, FileSpreadsheet, Activity, Link as LinkIcon, ShieldCheck } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAppStore } from '../store/useAppStore';
 
@@ -20,6 +20,7 @@ export const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
     { id: 'links', label: 'Liên kết', icon: LinkIcon, color: 'text-cyan-500', bg: 'bg-cyan-500' },
     { id: 'statistics', label: 'Thống kê', icon: Activity, color: 'text-pink-500', bg: 'bg-pink-500' },
     { id: 'export', label: 'Xuất dữ liệu', icon: FileSpreadsheet, color: 'text-green-600', bg: 'bg-green-600' },
+    { id: 'admin', label: 'Quản trị (Admin)', icon: ShieldCheck, color: 'text-rose-500', bg: 'bg-rose-500' },
   ];
 
   return (

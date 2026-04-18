@@ -1,13 +1,20 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Class, Student, PointRecord, SharedLink } from '../types';
-import { db } from '../firebase';
-import { collection, onSnapshot, doc, setDoc, deleteDoc, writeBatch, addDoc } from 'firebase/firestore';
+import { Class, Student, PointRecord, SharedLink, UserProfile } from '../types';
+import { db, auth, googleProvider } from '../firebase';
+import { collection, onSnapshot, doc, setDoc, deleteDoc, writeBatch, addDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
 
 interface AppState {
   classes: Class[];
   students: Student[];
   records: PointRecord[];
   links: SharedLink[];
+  userProfiles: UserProfile[];
+  user: User | null;
+  currentUserProfile: UserProfile | null;
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
+  updateUserRole: (uid: string, role: 'admin' | 'teacher' | 'viewer') => Promise<void>;
   addClass: (name: string) => void;
   deleteClass: (id: string) => void;
   addStudent: (student: Omit<Student, 'id'>) => void;
@@ -28,9 +35,48 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [students, setStudents] = useState<Student[]>([]);
   const [records, setRecords] = useState<PointRecord[]>([]);
   const [links, setLinks] = useState<SharedLink[]>([]);
+  const [userProfiles, setUserProfiles] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+
+  const currentUserProfile = userProfiles.find(p => p.id === user?.uid) || null;
 
   useEffect(() => {
+    const unsubAuth = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        try {
+          const userRef = doc(db, 'users', currentUser.uid);
+          const snap = await getDoc(userRef);
+          if (!snap.exists()) {
+            await setDoc(userRef, {
+              id: currentUser.uid,
+              email: currentUser.email,
+              displayName: currentUser.displayName,
+              photoURL: currentUser.photoURL,
+              role: 'viewer',
+              createdAt: Date.now()
+            });
+          } else {
+            // Update profile info safely in case it changed via Google, keeping role intact
+            await setDoc(userRef, {
+              email: currentUser.email,
+              displayName: currentUser.displayName,
+              photoURL: currentUser.photoURL,
+            }, { merge: true });
+          }
+        } catch (err) {
+          console.error("Error setting user profile", err);
+        }
+      }
+    });
+
+    const unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
+      setUserProfiles(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile)));
+    }, (error) => {
+      console.error("Error fetching users:", error);
+    });
+
     const unsubClasses = onSnapshot(collection(db, 'classes'), (snapshot) => {
       setClasses(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Class)));
     }, (error) => {
@@ -58,12 +104,41 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => {
+      unsubAuth();
+      unsubUsers();
       unsubClasses();
       unsubStudents();
       unsubRecords();
       unsubLinks();
     };
   }, []);
+
+  const login = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error: any) {
+      console.error("Login failed", error);
+      if (error.code === 'auth/unauthorized-domain') {
+        alert("Lỗi: Tên miền chưa được xác thực.\n\nVui lòng vào Firebase Console -> Authentication -> Settings -> Authorized domains và thêm tên miền:\n" + window.location.hostname);
+      }
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
+  const updateUserRole = async (uid: string, role: 'admin' | 'teacher' | 'viewer') => {
+    try {
+      await updateDoc(doc(db, 'users', uid), { role });
+    } catch (error) {
+      console.error("Error updating user role:", error);
+    }
+  };
 
   const addClass = async (name: string) => {
     try {
@@ -182,6 +257,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         students,
         records,
         links,
+        userProfiles,
+        user,
+        currentUserProfile,
+        login,
+        logout,
+        updateUserRole,
         addClass,
         deleteClass,
         addStudent,

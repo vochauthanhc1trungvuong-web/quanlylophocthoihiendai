@@ -13,6 +13,8 @@ import { Leaderboard } from './pages/Leaderboard';
 import { Export } from './pages/Export';
 import { Statistics } from './pages/Statistics';
 import { Links } from './pages/Links';
+import { Admin } from './pages/Admin';
+import { Header } from './components/Header';
 import { Loader2 } from 'lucide-react';
 
 function AppContent() {
@@ -34,15 +36,19 @@ function AppContent() {
   return (
     <div className="flex h-screen bg-gray-50 font-sans text-gray-900">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      <main className="flex-1 overflow-y-auto">
-        {activeTab === 'classes' && <Classes />}
-        {activeTab === 'students' && <Students />}
-        {activeTab === 'grading' && <Grading />}
-        {activeTab === 'leaderboard' && <Leaderboard />}
-        {activeTab === 'links' && <Links />}
-        {activeTab === 'statistics' && <Statistics />}
-        {activeTab === 'export' && <Export />}
-      </main>
+      <div className="flex-1 flex flex-col min-w-0">
+        <Header />
+        <main className="flex-1 overflow-y-auto">
+          {activeTab === 'classes' && <Classes />}
+          {activeTab === 'students' && <Students />}
+          {activeTab === 'grading' && <Grading />}
+          {activeTab === 'leaderboard' && <Leaderboard />}
+          {activeTab === 'links' && <Links />}
+          {activeTab === 'statistics' && <Statistics />}
+          {activeTab === 'export' && <Export />}
+          {activeTab === 'admin' && <Admin />}
+        </main>
+      </div>
     </div>
   );
 }
