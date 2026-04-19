@@ -9,7 +9,7 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
-  const { students } = useAppStore();
+  const { students, currentUserProfile } = useAppStore();
   const studentsWithoutAvatar = students.filter(s => !s.avatarUrl).length;
 
   const menuItems = [
@@ -20,8 +20,11 @@ export const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
     { id: 'links', label: 'Liên kết', icon: LinkIcon, color: 'text-cyan-500', bg: 'bg-cyan-500' },
     { id: 'statistics', label: 'Thống kê', icon: Activity, color: 'text-pink-500', bg: 'bg-pink-500' },
     { id: 'export', label: 'Xuất dữ liệu', icon: FileSpreadsheet, color: 'text-green-600', bg: 'bg-green-600' },
-    { id: 'admin', label: 'Quản trị (Admin)', icon: ShieldCheck, color: 'text-rose-500', bg: 'bg-rose-500' },
   ];
+
+  if (currentUserProfile?.email === 'vochauthanh.c1trungvuong@moet.edu.vn') {
+    menuItems.push({ id: 'admin', label: 'Quản trị (Admin)', icon: ShieldCheck, color: 'text-rose-500', bg: 'bg-rose-500' });
+  }
 
   return (
     <div className="w-72 bg-indigo-900 border-r border-indigo-800 h-screen flex flex-col shrink-0 text-white shadow-2xl z-20 relative">

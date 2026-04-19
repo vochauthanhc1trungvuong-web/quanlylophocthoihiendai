@@ -1,6 +1,7 @@
 export interface Class {
   id: string;
   name: string;
+  ownerUid?: string;
 }
 
 export interface Student {
@@ -8,6 +9,7 @@ export interface Student {
   classId: string;
   name: string;
   avatarUrl?: string;
+  ownerUid?: string;
 }
 
 export interface PointRecord {
@@ -17,6 +19,7 @@ export interface PointRecord {
   timestamp: number;
   points: number;
   reason: string;
+  ownerUid?: string;
 }
 
 export interface SharedLink {
@@ -25,6 +28,7 @@ export interface SharedLink {
   title: string;
   url: string;
   createdAt: number;
+  ownerUid?: string;
 }
 
 export interface UserProfile {
